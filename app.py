@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import altair as alt
 import polars as pl
 import streamlit as st
 
@@ -25,6 +26,24 @@ from model.spread import week_board
 from model.weights import blended_rating, load_prior_r
 
 st.set_page_config(page_title="NFL spread model", layout="wide")
+
+def _line_chart(df: pl.DataFrame, x: str, y: str, y_title: str, y_domain: list[float] | None = None) -> None:
+    """Altair line so axes stay in the units we meant (not a mystery index)."""
+    pdf = df.select([x, y]).to_pandas()
+    y_enc = alt.Y(f"{y}:Q", title=y_title)
+    if y_domain is not None:
+        y_enc = alt.Y(f"{y}:Q", title=y_title, scale=alt.Scale(domain=y_domain))
+    chart = (
+        alt.Chart(pdf)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X(f"{x}:Q", title=x.replace("_", " ")),
+            y=y_enc,
+            tooltip=[x, y],
+        )
+        .properties(height=280)
+    )
+    st.altair_chart(chart, use_container_width=True)
 
 
 def _read(path, what: str) -> pl.DataFrame | None:
@@ -149,7 +168,24 @@ def view_team() -> None:
             pl.col("off_epa_per_play").round(3).alias("off_epa_raw"),
             pl.col("def_epa_per_play").round(3).alias("def_epa_raw"),
         )
-        st.line_chart(trend.to_pandas(), x="week")
+        long = trend.unpivot(
+            index="week",
+            on=["off_epa_comp", "def_epa_comp", "off_epa_raw", "def_epa_raw"],
+            variable_name="series",
+            value_name="epa",
+        )
+        chart = (
+            alt.Chart(long.to_pandas())
+            .mark_line(point=True)
+            .encode(
+                x=alt.X("week:Q", title="week"),
+                y=alt.Y("epa:Q", title="EPA/play"),
+                color="series:N",
+                tooltip=["week", "series", "epa"],
+            )
+            .properties(height=280)
+        )
+        st.altair_chart(chart, use_container_width=True)
         st.dataframe(trend.to_pandas(), use_container_width=True, hide_index=True)
 
     st.subheader("Raw vs compensated season averages")
@@ -221,7 +257,17 @@ def view_research() -> None:
             use_container_width=True,
             hide_index=True,
         )
-        st.bar_chart(stab.to_pandas().set_index("stat")[["r_spearman_brown"]])
+        bar = (
+            alt.Chart(stab.to_pandas())
+            .mark_bar()
+            .encode(
+                x=alt.X("r_spearman_brown:Q", title="Spearman–Brown reliability", scale=alt.Scale(domain=[-0.2, 1.0])),
+                y=alt.Y("stat:N", sort="-x", title="stat"),
+                tooltip=["stat", "r_spearman_brown", "r_split_half"],
+            )
+            .properties(height=320)
+        )
+        st.altair_chart(bar, use_container_width=True)
         st.caption("EPA/play and success rate should beat fumbles_lost and turnover_margin.")
 
     st.subheader("First-N → rest-of-season (weight curve)")
@@ -234,15 +280,18 @@ def view_research() -> None:
         st.dataframe(wide.to_pandas(), use_container_width=True, hide_index=True)
         epa = curve.filter(pl.col("stat") == "off_epa_per_play").sort("n_games")
         if epa.height:
-            st.line_chart(epa.select("n_games", "r_first_n").to_pandas(), x="n_games")
+            _line_chart(epa, "n_games", "r_first_n", "r(first N, rest of season)", y_domain=[-0.1, 1.0])
             try:
                 from model.weights import weight_curve_table
 
                 weights = weight_curve_table(curve, load_prior_r(), "off_epa_per_play")
                 st.subheader("Blend weight vs games played (off_epa_per_play)")
-                st.line_chart(
-                    weights.select("games_played", "weight_current").to_pandas(),
-                    x="games_played",
+                _line_chart(
+                    weights,
+                    "games_played",
+                    "weight_current",
+                    "weight on current season",
+                    y_domain=[0.0, 1.0],
                 )
             except FileNotFoundError:
                 pass
