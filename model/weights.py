@@ -267,9 +267,11 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     print(
-        "\nThe current-season weight should start near 0 (or low) and climb\n"
-        "toward roughly 0.7–0.9 by midseason. Exact values depend on how\n"
-        "stable EPA was in YOUR data vs how sticky the prior was."
+        "\nThe current-season weight starts at 0 (pure prior) and climbs as\n"
+        "games accumulate. On 2015–2025 nflverse data it levels off near 0.65:\n"
+        "first-N r for EPA peaks around 0.56, and last year's shrunk prior still\n"
+        "predicts at r ≈ 0.42, so the formula never hands the season fully to\n"
+        "current games. 0.7–0.9 would appear if the prior were weaker."
     )
     return 0
 

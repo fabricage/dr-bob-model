@@ -145,6 +145,27 @@ Once you have run `make pull`, an extra test asserts regular-season
 
 ---
 
+## What the studies showed (2015–2025 nflverse)
+
+These are the numbers the pipeline printed on real data — the reason
+the methodology exists:
+
+| Stat | Split-half r (Spearman–Brown) | First-N r (N=8) |
+| --- | --- | --- |
+| Offensive success rate | 0.77 | 0.58 |
+| Offensive EPA/play | 0.74 | 0.56 |
+| Turnover margin | 0.28 | 0.17 |
+| Fumbles lost | ~0 | ~0 |
+
+Efficiency is a trait. Turnovers are mostly luck. The 2025 preseason
+prior top-10 by net EPA was BAL, BUF, DET, PHI, GB — last year's good
+teams, shrunk toward average. Walk-forward MAE vs the closing spread
+is about 2.6 points; ATS when the model disagrees by 1.5+ points sits
+near 49% pooled, which is what you should expect from a first EPA-only
+line against a sharp market.
+
+---
+
 ## Not built yet
 
 - Live odds feed (The Odds API) replacing schedule lines on the board

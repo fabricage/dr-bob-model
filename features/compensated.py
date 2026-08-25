@@ -51,16 +51,23 @@ def load_raw_team_games() -> pl.DataFrame:
     return pl.read_parquet(path)
 
 
+def _hfa_code(is_home: bool) -> float:
+    """+0.5 home / −0.5 away so HFA cannot swallow the grand mean of the stat."""
+    return 0.5 if bool(is_home) else -0.5
+
+
 def _design_matrix(
     teams: list[str],
     team: np.ndarray,
     opponent: np.ndarray,
     home: np.ndarray,
 ) -> np.ndarray:
-    """Dummy-code offense team + defense opponent + home-field flag.
+    """Dummy-code offense team + defense opponent + home-field contrast.
 
-    Columns: [off_team_1 ... off_team_k | def_opp_1 ... def_opp_k | home]
+    Columns: [off_team_1 ... off_team_k | def_opp_1 ... def_opp_k | hfa]
     Ridge does not need us to drop a dummy; shrinkage pins the scale.
+    HFA is contrast-coded so it is the home-minus-away gap, not the
+    league average of the stat (success rate is ~0.43; EPA is ~0).
     """
     index = {t: i for i, t in enumerate(teams)}
     n = len(team)
@@ -69,7 +76,7 @@ def _design_matrix(
     for i in range(n):
         x[i, index[str(team[i])]] = 1.0
         x[i, k + index[str(opponent[i])]] = 1.0
-        x[i, -1] = 1.0 if bool(home[i]) else 0.0
+        x[i, -1] = _hfa_code(home[i])
     return x
 
 
@@ -103,7 +110,7 @@ def fit_stat_season(
     # Compensated offense ≈ offense_effect + residual (opponent/HFA stripped).
     compensated = y - np.array(
         [
-            def_map[str(o)] + hfa * (1.0 if bool(h) else 0.0)
+            def_map[str(o)] + hfa * _hfa_code(h)
             for o, h in zip(
                 work.get_column("opponent").to_list(),
                 work.get_column("home").to_list(),
@@ -140,8 +147,8 @@ def _defense_compensated(
         if y_i is None or (isinstance(y_i, float) and not np.isfinite(y_i)):
             def_comp.append(None)
             continue
-        opp_home = 0.0 if bool(row["home"]) else 1.0
-        def_comp.append(float(y_i) - off_map.get(str(row["opponent"]), 0.0) - hfa * opp_home)
+        opp_home = not bool(row["home"])
+        def_comp.append(float(y_i) - off_map.get(str(row["opponent"]), 0.0) - hfa * _hfa_code(opp_home))
     return pl.DataFrame(
         {"game_id": game_ids, "team": teams, f"{def_stat}_comp": def_comp}
     )
