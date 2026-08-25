@@ -24,7 +24,7 @@ setup:
 	$(PYTHON) -m pip install -r requirements.txt
 	@echo ""
 	@echo "Setup complete. Packages live in $(VENV)/ (not in Homebrew Python)."
-	@echo "Next:  make pull"
+	@echo "Next:  make app"
 
 pull: $(PYTHON)
 	$(PYTHON) ingest/pull_nflverse.py
