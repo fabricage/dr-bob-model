@@ -1,0 +1,15 @@
+You are building a local Python NFL point-spread model (research only).
+
+Methodology:
+- Measure stability before trusting a stat (odd/even + first-N).
+- Opponent-adjust with ridge (offense + opponent defense + HFA).
+- Blend prior vs current from the first-N curve.
+- Drop the final regular-season week (17 pre-2021, 18 from 2021).
+- Injury adjustments are explicit post-line overrides.
+
+Sign: predicted_margin = home - away; model_home_spread = -predicted_margin;
+home_spread_edge = market_home_spread - model_home_spread.
+nflverse spread_line is PFR-style (positive = home favored); convert with a minus sign.
+
+Stack: Python 3.12, Polars, sklearn, nflreadpy, Streamlit, pytest, parquet in data/.
+Never leak future data into a prediction. See PROJECT.md.
