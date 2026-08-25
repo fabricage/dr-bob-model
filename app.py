@@ -364,7 +364,7 @@ def view_build() -> None:
 def main() -> None:
     st.sidebar.title("NFL spread model")
     st.sidebar.info(
-        "This is a web page at http://localhost:8501. "
+        "This is a web page at http://127.0.0.1:8501. "
         "The terminal is only the server — leave it open. "
         "No accounts, no bet placement."
     )
