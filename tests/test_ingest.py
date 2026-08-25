@@ -28,6 +28,12 @@ def test_candidate_stats_include_noise_controls() -> None:
     assert "fumbles_lost" in names
 
 
+def test_board_ready_is_false_without_gold_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NFL_MODEL_DATA_DIR", str(tmp_path))
+    assert config.board_ready() is False
+    assert config.data_status()["scored games / board"] is False
+
+
 @pytest.mark.skipif(
     not config.schedules_path().exists(),
     reason="bronze schedules not downloaded yet",
