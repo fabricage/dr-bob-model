@@ -9,7 +9,7 @@ SYS_PYTHON ?= python3
 help:
 	@echo "First time on this machine:"
 	@echo "  make setup      create .venv and install packages"
-	@echo "  make app        open http://localhost:8501 in your browser"
+	@echo "  make app        open http://127.0.0.1:8501 in your browser"
 	@echo "First-time data build is a button on the Build data page."
 	@echo "Optional CLI: make pull / features / research / model / backtest"
 
@@ -53,12 +53,10 @@ lint: $(PYTHON)
 
 app: $(PYTHON)
 	@echo ""
-	@echo "The dashboard is a web page, not this terminal."
-	@echo "Keep this window open — it is only the server."
-	@echo "Opening  http://localhost:8501  in your browser ..."
+	@echo "Starting the web app at  http://127.0.0.1:8501"
+	@echo "Keep this terminal open. The site is in your browser."
 	@echo ""
-	@if command -v open >/dev/null 2>&1; then (sleep 2 && open http://localhost:8501) & fi
-	$(PYTHON) -m streamlit run app.py --server.port 8501 --server.headless false
+	$(PYTHON) launch_dashboard.py
 
 week: $(PYTHON)
 	$(PYTHON) run_week.py

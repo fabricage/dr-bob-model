@@ -42,11 +42,16 @@ called `.venv` instead.
 
 ```bash
 make setup      # once: creates .venv and installs packages
-make app        # opens http://localhost:8501 in your browser
+make app        # waits until the server is up, then opens http://127.0.0.1:8501
 ```
 
 Leave that terminal window open. It is only the **server**. The model
-itself is the web page.
+itself is the web page at **http://127.0.0.1:8501**.
+
+If a tab opens too early and says the site cannot be reached, wait until
+the terminal prints `Server is up`, then refresh, or paste
+`http://127.0.0.1:8501` into the address bar (use `127.0.0.1`, not
+`localhost`).
 
 If the board is empty the first time, use **Build data** in the sidebar
 and click **First-time build**. That download can take several minutes.
