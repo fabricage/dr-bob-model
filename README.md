@@ -33,15 +33,33 @@ shop number with `market_home_spread = −spread_line`.
 
 ---
 
-## Setup
+## First-time setup on a Mac
+
+Homebrew Python will not let `pip install` write into the system. That
+error (`externally-managed-environment`) is a safety feature, not a
+broken install. This project keeps its packages in a private folder
+called `.venv` instead.
 
 ```bash
-python3 -m pip install -r requirements.txt
-# or
-make setup
+make setup      # creates .venv and installs packages (once)
+make pull       # downloads NFL data (needs internet; a few minutes)
+make features
+make research
+make model
+make backtest
+make app        # opens the dashboard in your browser
 ```
 
-Python 3.12, Polars, scikit-learn, nflreadpy, Streamlit, pytest.
+`make` always uses `.venv` for you. If you ever run Python by hand in a
+new terminal:
+
+```bash
+source .venv/bin/activate
+python ingest/pull_nflverse.py
+```
+
+Python 3.12+ is fine (including Homebrew 3.14). Stack: Polars,
+scikit-learn, nflreadpy, Streamlit, pytest.
 
 ---
 
@@ -51,8 +69,7 @@ After the Sunday/Monday games are in nflverse (usually Monday night /
 Tuesday):
 
 ```bash
-python run_week.py
-# or: make week
+make week
 ```
 
 That command:
@@ -65,8 +82,7 @@ That command:
 Then open the dashboard:
 
 ```bash
-python -m streamlit run app.py
-# or: make app
+make app
 ```
 
 Add an injury override when a starter is ruled out (example: backup QB):
