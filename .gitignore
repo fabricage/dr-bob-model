@@ -1,0 +1,27 @@
+# Local research data (parquet is rebuilt from nflverse)
+data/bronze/
+data/silver/
+data/gold/
+data/*.parquet
+data/*.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Streamlit / tooling
+.streamlit/secrets.toml
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
