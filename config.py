@@ -191,6 +191,24 @@ def all_model_stat_columns() -> list[str]:
     return efficiency_columns("off") + efficiency_columns("def") + list(NOISE_CONTROL_STATS)
 
 
+def data_status() -> dict[str, bool]:
+    """Which pipeline outputs exist on disk (for the dashboard setup page)."""
+    return {
+        "schedules": schedules_path().exists(),
+        "play-by-play": pbp_dir().exists() and any(pbp_dir().glob("pbp_*.parquet")),
+        "raw team-game stats": team_game_stats_raw_path().exists(),
+        "compensated stats": team_game_stats_path().exists(),
+        "stability studies": stability_oddeven_path().exists() and weight_curve_path().exists(),
+        "priors": priors_path().exists(),
+        "scored games / board": backtest_games_path().exists(),
+    }
+
+
+def board_ready() -> bool:
+    """True when the dashboard can show model lines."""
+    return backtest_games_path().exists()
+
+
 def ensure_data_dirs() -> None:
     """Create bronze/silver/gold folders if they do not exist yet."""
     for path in (pbp_dir(), silver_dir(), gold_dir()):

@@ -9,13 +9,9 @@ SYS_PYTHON ?= python3
 help:
 	@echo "First time on this machine:"
 	@echo "  make setup      create .venv and install packages"
-	@echo "  make pull       download nflverse data"
-	@echo "  make features   team-game stats + opponent adjustment"
-	@echo "  make research   stability studies"
-	@echo "  make model      priors, weights, sample board"
-	@echo "  make backtest   walk-forward evaluation"
-	@echo "  make app        open the Streamlit dashboard"
-	@echo "Later, in season:  make week"
+	@echo "  make app        open http://localhost:8501 in your browser"
+	@echo "First-time data build is a button on the Build data page."
+	@echo "Optional CLI: make pull / features / research / model / backtest"
 
 $(PYTHON):
 	@echo "No virtual environment yet. Run this first:"
@@ -28,7 +24,7 @@ setup:
 	$(PYTHON) -m pip install -r requirements.txt
 	@echo ""
 	@echo "Setup complete. Packages live in $(VENV)/ (not in Homebrew Python)."
-	@echo "Next:  make pull"
+	@echo "Next:  make app"
 
 pull: $(PYTHON)
 	$(PYTHON) ingest/pull_nflverse.py
@@ -56,7 +52,13 @@ lint: $(PYTHON)
 	$(PYTHON) -m ruff check .
 
 app: $(PYTHON)
-	$(PYTHON) -m streamlit run app.py
+	@echo ""
+	@echo "The dashboard is a web page, not this terminal."
+	@echo "Keep this window open — it is only the server."
+	@echo "Opening  http://localhost:8501  in your browser ..."
+	@echo ""
+	@if command -v open >/dev/null 2>&1; then (sleep 2 && open http://localhost:8501) & fi
+	$(PYTHON) -m streamlit run app.py --server.port 8501 --server.headless false
 
 week: $(PYTHON)
 	$(PYTHON) run_week.py

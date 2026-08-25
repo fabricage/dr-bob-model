@@ -307,19 +307,79 @@ def view_research() -> None:
         st.caption("ATS figures are research diagnostics, not a betting record to chase.")
 
 
+def view_build() -> None:
+    """Download data and rebuild the model from the browser, not the terminal."""
+    st.title("Build data")
+    st.caption(
+        "This page downloads NFL data and rebuilds ratings. Leave the terminal "
+        "window that launched the app open — that window is only the server."
+    )
+    status = config.data_status()
+    ready = config.board_ready()
+    if ready:
+        st.success("Model files are on disk. The other pages should show real games.")
+    else:
+        st.info(
+            "First time here: click **First-time build**. It needs internet and "
+            "usually takes several minutes (2015–2025 play-by-play)."
+        )
+    rows = [{"file": name, "ready": "yes" if ok else "no"} for name, ok in status.items()]
+    st.dataframe(pl.DataFrame(rows).to_pandas(), use_container_width=True, hide_index=True)
+
+    c1, c2 = st.columns(2)
+    first = c1.button("First-time build (download + full model)", type="primary")
+    weekly = c2.button("Weekly refresh (current season)")
+
+    if first or weekly:
+        log_box = st.empty()
+        argv = ["--full"] if first else []
+        buf: list[str] = []
+
+        class _Tee:
+            def write(self, chunk: str) -> int:
+                if chunk:
+                    buf.append(chunk)
+                    log_box.code("".join(buf)[-12000:])
+                return len(chunk)
+
+            def flush(self) -> None:
+                return None
+
+        with st.spinner("Working… this page will update as steps finish."):
+            old = sys.stdout
+            sys.stdout = _Tee()  # type: ignore[assignment]
+            try:
+                from run_week import main as run_week_main
+
+                code = run_week_main(argv)
+            finally:
+                sys.stdout = old
+        if code == 0:
+            st.cache_data.clear()
+            st.success("Done. Open **This week's board** in the sidebar.")
+        else:
+            st.error(f"Build exited with code {code}. Scroll the log above.")
+
+
 def main() -> None:
     st.sidebar.title("NFL spread model")
     st.sidebar.info(
-        "Local research tool. No accounts, no bet placement, no hosting. "
-        "predicted_margin = home − away. model_home_spread = −predicted_margin."
+        "This is a web page at http://localhost:8501. "
+        "The terminal is only the server — leave it open. "
+        "No accounts, no bet placement."
     )
-    page = st.sidebar.radio("View", ["This week's board", "Team page", "Research"])
+    views = ["This week's board", "Team page", "Research", "Build data"]
+    if not config.board_ready():
+        views = ["Build data", "This week's board", "Team page", "Research"]
+    page = st.sidebar.radio("View", views)
     if page == "This week's board":
         view_board()
     elif page == "Team page":
         view_team()
-    else:
+    elif page == "Research":
         view_research()
+    else:
+        view_build()
 
 
 if __name__ == "__main__":

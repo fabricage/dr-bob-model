@@ -41,21 +41,20 @@ broken install. This project keeps its packages in a private folder
 called `.venv` instead.
 
 ```bash
-make setup      # creates .venv and installs packages (once)
-make pull       # downloads NFL data (needs internet; a few minutes)
-make features
-make research
-make model
-make backtest
-make app        # opens the dashboard in your browser
+make setup      # once: creates .venv and installs packages
+make app        # opens http://localhost:8501 in your browser
 ```
 
-`make` always uses `.venv` for you. If you ever run Python by hand in a
-new terminal:
+Leave that terminal window open. It is only the **server**. The model
+itself is the web page.
+
+If the board is empty the first time, use **Build data** in the sidebar
+and click **First-time build**. That download can take several minutes.
+
+If you ever run Python by hand in a new terminal:
 
 ```bash
 source .venv/bin/activate
-python ingest/pull_nflverse.py
 ```
 
 Python 3.12+ is fine (including Homebrew 3.14). Stack: Polars,
